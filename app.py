@@ -93,7 +93,7 @@ def generate_url(formula_entry, smiles_entry):
     output_list = []
 
     for adduct in adducts_to_report:
-        adduct_mass = get_adduct_mass(exact_mass, adduct)
+        adduct_mass, charge = get_adduct_mass(exact_mass, adduct)
         output_dict = {}
         output_dict["adduct"] = adduct
         output_dict["mz"] = adduct_mass
