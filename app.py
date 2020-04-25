@@ -12,6 +12,7 @@ import urllib.parse
 from flask import Flask
 import json
 import pandas as pd
+from molmass import Formula
 import requests
 import urllib.parse
 
@@ -43,9 +44,17 @@ DASHBOARD = [
     dbc.CardBody(
         [
             html.Div(id='version', children="Version - Release_1"),
+            html.Br(),
+            dbc.Label("Molecular Formula", html_for="formula_entry"),
+            dbc.Input(className="mb-3", id='formula_entry', placeholder="Enter Formula"),
+            html.Br(),
+            dbc.Label("Smiles Structure", html_for="smiles_entry"),
             dbc.Textarea(className="mb-3", id='smiles_entry', placeholder="Enter SMILES structure"),
-            
+            html.Hr(),
+            html.Div(children="Adduct Table"),
+            html.Br(),
             dcc.Loading(
+                className="mb-3",
                 id="massspecinfo",
                 children=[html.Div([html.Div(id="loading-output-3")])],
                 type="default",
@@ -66,17 +75,22 @@ app.layout = html.Div(children=[NAVBAR, BODY])
 # This function will rerun at any 
 @app.callback(
     [Output('massspecinfo', 'children')],
-    [Input('smiles_entry', 'value')],
+    [Input('formula_entry', 'value'), Input('smiles_entry', 'value')],
 )
-def generate_url(smiles_entry):
-    # Getting exact mass
-    url = "https://gnps-structure.ucsd.edu/structuremass?smiles={}".format(urllib.parse.quote(smiles_entry))
-    r = requests.get(url)
-    exact_mass = float(r.text)
+def generate_url(formula_entry, smiles_entry):
+    exact_mass = 0
+
+    if formula_entry is not None and len(formula_entry):
+        f = Formula(formula_entry)
+        exact_mass = f.isotope.mass
+    else:
+        # Getting exact mass
+        url = "https://gnps-structure.ucsd.edu/structuremass?smiles={}".format(urllib.parse.quote(smiles_entry))
+        r = requests.get(url)
+        exact_mass = float(r.text)
 
     adducts_to_report = ["M", "M+H", "M-H"]
     output_list = []
-
 
     for adduct in adducts_to_report:
         adduct_mass = get_adduct_mass(exact_mass, adduct)
@@ -95,8 +109,6 @@ def generate_url(smiles_entry):
         sort_action="native",
         sort_mode="multi",
         column_selectable="single",
-        row_selectable="multi",
-        row_deletable=True,
         selected_columns=[],
         selected_rows=[],
         page_action="native",
