@@ -106,12 +106,13 @@ def generate_url(formula_entry, smiles_entry):
         adduct_mass, charge = get_adduct_mass(exact_mass, adduct)
         output_dict = {}
         output_dict["adduct"] = adduct
+        output_dict["charge"] = charge
         output_dict["mz"] = adduct_mass
         output_list.append(output_dict)
 
     table_fig = dash_table.DataTable(
         columns=[
-            {"name": i, "id": i, "deletable": True, "selectable": True} for i in ["adduct", "mz"]
+            {"name": i, "id": i, "deletable": True, "selectable": True} for i in ["adduct", "charge", "mz"]
         ],
         data=output_list,
         editable=True,
