@@ -134,7 +134,46 @@ def generate_url(formula_entry, smiles_entry):
     [Input('formula_entry', 'value'), Input('smiles_entry', 'value')],
 )
 def generate_isotopologues(formula_entry, smiles_entry):
-    return ["MING"]
+    formula = ""
+    if formula_entry is not None and len(formula_entry):
+        formula = formula_entry
+    else:
+        # Getting exact mass
+        url = "https://gnps-structure.ucsd.edu/formula?smiles={}".format(urllib.parse.quote(smiles_entry))
+        r = requests.get(url)
+        formula = (r.text)
+
+    adduct = "M+H"
+    formula = formula + "H1"
+
+    i = IsoSpecPy.IsoTotalProb(formula = formula, # The formula for glucose, sans the radiolabel atoms                            # And the rest of parameters for configuration
+                            prob_to_cover = 0.99, 
+                            get_confs=True)
+    output_list = []
+    for mass, prob, conf in i:
+        output_dict = {}
+        output_dict["prob"] = prob
+        output_dict["mz"] = mass
+        output_list.append(output_dict)
+
+    table_fig = dash_table.DataTable(
+        columns=[
+            {"name": i, "id": i, "deletable": True, "selectable": True} for i in ["mz", "prob"]
+        ],
+        data=output_list,
+        editable=True,
+        filter_action="native",
+        sort_action="native",
+        sort_mode="multi",
+        column_selectable="single",
+        selected_columns=[],
+        selected_rows=[],
+        page_action="native",
+        page_current= 0,
+        page_size= 10,
+    )
+
+    return [table_fig]
 
 def get_adduct_mass(exact_mass, adduct):
     M = exact_mass
