@@ -153,7 +153,7 @@ def generate_isotopologues(formula_entry, smiles_entry):
     for mass, prob, conf in i:
         output_dict = {}
         output_dict["prob"] = prob
-        output_dict["mz"] = mass
+        output_dict["mz"] = mass - 0.00054858
         output_list.append(output_dict)
 
     table_fig = dash_table.DataTable(
