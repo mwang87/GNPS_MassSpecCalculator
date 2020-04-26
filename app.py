@@ -14,6 +14,7 @@ import json
 import pandas as pd
 from molmass import Formula
 import requests
+import IsoSpecPy
 import urllib.parse
 
 
@@ -51,12 +52,21 @@ DASHBOARD = [
             dbc.Label("Smiles Structure", html_for="smiles_entry"),
             dbc.Textarea(className="mb-3", id='smiles_entry', placeholder="Enter SMILES structure"),
             html.Hr(),
-            html.Div(children="Adduct Table"),
+            html.Div(children="Monoisotopic Adduct Table"),
             html.Br(),
             dcc.Loading(
                 className="mb-3",
                 id="massspecinfo",
                 children=[html.Div([html.Div(id="loading-output-3")])],
+                type="default",
+            ),
+            html.Hr(),
+            html.Div(children="Isotopologue Table"),
+            html.Br(),
+            dcc.Loading(
+                className="mb-3",
+                id="isotopologueinfo",
+                children=[html.Div([html.Div(id="loading-output-4")])],
                 type="default",
             )
         ]
@@ -72,7 +82,7 @@ BODY = dbc.Container(
 
 app.layout = html.Div(children=[NAVBAR, BODY])
 
-# This function will rerun at any 
+# This function will generate monoisotopic masses for a set of adducts
 @app.callback(
     [Output('massspecinfo', 'children')],
     [Input('formula_entry', 'value'), Input('smiles_entry', 'value')],
@@ -119,6 +129,12 @@ def generate_url(formula_entry, smiles_entry):
     return [table_fig]
 
 
+@app.callback(
+    [Output('isotopologueinfo', 'children')],
+    [Input('formula_entry', 'value'), Input('smiles_entry', 'value')],
+)
+def generate_isotopologues(formula_entry, smiles_entry):
+    return ["MING"]
 
 def get_adduct_mass(exact_mass, adduct):
     M = exact_mass
