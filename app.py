@@ -99,7 +99,7 @@ def generate_url(formula_entry, smiles_entry):
         r = requests.get(url)
         exact_mass = float(r.text)
 
-    adducts_to_report = ["M", "M+H", "M+Na", "M+K", "M+NH4", "M+Ca2+-H", "M-H", "M+Br", "M+Cl", "M+CHOO"]
+    adducts_to_report = ["M", "M+H", "M+Na", "M+K", "M+NH4", "M-H", "M+Br", "M+Cl"]
     output_list = []
 
     for adduct in adducts_to_report:
@@ -180,7 +180,7 @@ def get_adduct_mass(exact_mass, adduct):
     M = exact_mass
 
     if adduct == 'M':
-        return M, 1
+        return M, 0
 
     if adduct == ('M+3H'):
         return M/3 + 1.007276, 3
