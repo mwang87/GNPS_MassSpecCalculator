@@ -17,7 +17,6 @@ import requests
 import IsoSpecPy
 import urllib.parse
 
-
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
@@ -174,7 +173,28 @@ def generate_isotopologues(formula_entry, smiles_entry):
         page_size= 10,
     )
 
-    return [table_fig]
+    # Drawing Figure
+    import numpy as np
+    mz_grid = np.arange(output_list[0]["mz"] - 1,
+                        output_list[-1]["mz"] + 1, 0.02)
+    intensity = np.zeros_like(mz_grid)
+    sigma = 0.002
+    for peak in output_list:
+        # Add gaussian peak shape centered around each theoretical peak
+        intensity += peak["prob"] * np.exp(-(mz_grid - peak["mz"]) ** 2 / (2 * sigma)
+                ) / (np.sqrt(2 * np.pi) * sigma)
+
+    # Normalize profile to 0-100
+    intensity = (intensity / intensity.max()) * 100
+
+    df = pd.DataFrame()
+    df["mz"] = mz_grid
+    df["intensity"] = intensity
+
+    line_fig = px.line(df, x="mz", y="intensity", title='Isotopologue Distribution')
+
+
+    return [[table_fig, dcc.Graph(figure=line_fig)]]
 
 def get_adduct_mass(exact_mass, adduct):
     M = exact_mass
