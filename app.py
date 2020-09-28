@@ -150,9 +150,6 @@ def generate_isotopologues(formula_entry, smiles_entry, resolution_entry):
         r = requests.get(url)
         formula = (r.text)
 
-    adduct = "M+H"
-    formula = formula + "H1"
-
     i = IsoSpecPy.IsoTotalProb(formula = formula, # The formula for glucose, sans the radiolabel atoms                            # And the rest of parameters for configuration
                             prob_to_cover = 0.99, 
                             get_confs=True)
@@ -205,7 +202,7 @@ def generate_isotopologues(formula_entry, smiles_entry, resolution_entry):
     df["mz"] = mz_grid
     df["intensity"] = intensity
 
-    line_fig = px.line(df, x="mz", y="intensity", title='Isotopologue Distribution - Resolution - {}'.format(resolution_entry))
+    line_fig = px.line(df, x="mz", y="intensity", title='Isotopologue Distribution - {} - Resolution - {}'.format(formula, resolution_entry))
 
 
     return [[table_fig, dcc.Graph(figure=line_fig)]]
