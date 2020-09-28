@@ -61,6 +61,13 @@ DASHBOARD = [
             ),
             html.Hr(),
             html.Div(children="Isotopologue Table"),
+            dcc.Slider(
+                min=0,
+                max=1000000,
+                value=5000,
+                step=1000,
+                id="resolution-slider"
+            ),
             html.Br(),
             dcc.Loading(
                 className="mb-3",
@@ -131,9 +138,9 @@ def generate_url(formula_entry, smiles_entry):
 
 @app.callback(
     [Output('isotopologueinfo', 'children')],
-    [Input('formula_entry', 'value'), Input('smiles_entry', 'value')],
+    [Input('formula_entry', 'value'), Input('smiles_entry', 'value'), Input("resolution-slider", "value")],
 )
-def generate_isotopologues(formula_entry, smiles_entry):
+def generate_isotopologues(formula_entry, smiles_entry, resolution_entry):
     formula = ""
     if formula_entry is not None and len(formula_entry):
         formula = formula_entry
@@ -174,11 +181,18 @@ def generate_isotopologues(formula_entry, smiles_entry):
     )
 
     # Drawing Figure
+    main_mz = output_list[0]["mz"]
+    delta_m = main_mz / float(resolution_entry)
+    sigma = delta_m/2.355
+
+    display_bins = 0.02
+    display_bins = sigma
+
     import numpy as np
     mz_grid = np.arange(output_list[0]["mz"] - 1,
-                        output_list[-1]["mz"] + 1, 0.02)
+                        output_list[-1]["mz"] + 1, display_bins)
     intensity = np.zeros_like(mz_grid)
-    sigma = 0.002
+
     for peak in output_list:
         # Add gaussian peak shape centered around each theoretical peak
         intensity += peak["prob"] * np.exp(-(mz_grid - peak["mz"]) ** 2 / (2 * sigma)
@@ -191,7 +205,7 @@ def generate_isotopologues(formula_entry, smiles_entry):
     df["mz"] = mz_grid
     df["intensity"] = intensity
 
-    line_fig = px.line(df, x="mz", y="intensity", title='Isotopologue Distribution')
+    line_fig = px.line(df, x="mz", y="intensity", title='Isotopologue Distribution - Resolution - {}'.format(resolution_entry))
 
 
     return [[table_fig, dcc.Graph(figure=line_fig)]]
